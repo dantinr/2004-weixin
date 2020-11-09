@@ -22,10 +22,34 @@ class TestController extends Controller
         echo Redis::get($key);
     }
 
+    public function test3()
+    {
+        echo '<pre>';print_r($_GET);echo '</pre>';
+    }
 
-    public function test2()
+    public function test4()
+    {
+        //echo '<pre>';print_r($_POST);echo '</pre>';
+        $xml_str = file_get_contents("php://input");
+
+
+        //将 xml 转换为 对象或数组
+        $xml_obj = simplexml_load_string($xml_str);
+        //echo '<pre>';print_r($xml_obj);echo '</pre>';
+
+        echo $xml_obj->ToUserName;
+
+    }
+
+
+    public function wx()
     {
         echo __METHOD__;
+    }
+
+    public function wx2()
+    {
+        echo '<pre>';print_r($_POST);echo '</pre>';
     }
 
 

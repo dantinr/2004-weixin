@@ -49,7 +49,7 @@ class WxController extends Controller
             $xml_str = file_get_contents("php://input");
 
             // 记录日志
-            file_put_contents('wx_event.log',$xml_str);
+            file_put_contents('wx_event.log',$xml_str,FILE_APPEND);
             echo "";
             die;
 
