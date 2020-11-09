@@ -33,6 +33,7 @@ Route::post('/test/wx','TestController@wx2');
 //Route::get('/wx/token','WxController@getAccessToken');        //获取access_token
 
 Route::prefix('/wx')->group(function(){
+    Route::get('/','WxController@index');       //接入
     Route::post('/','WxController@wxEvent');
     Route::get('/token','WxController@getAccessToken');        //获取access_token
 });
