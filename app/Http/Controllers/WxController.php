@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use GuzzleHttp\Client;
 
 class WxController extends Controller
 {
@@ -75,11 +76,14 @@ class WxController extends Controller
 
         }else{
 
-            echo "五缓存";
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_APPSEC');
-            $response = file_get_contents($url);
+            //使用guzzle发起get请求
+            $client = new Client();         //实例化 客户端
 
-            $data = json_decode($response,true);
+            $response = $client->request('GET',$url,['verify'=>false]);       //发起请求并接收响应
+
+            $json_str = $response->getBody();       //服务器的响应数据
+            $data = json_decode($json_str,true);
             $token = $data['access_token'];
 
             //保存到Redis中 时间为 3600
@@ -88,8 +92,36 @@ class WxController extends Controller
 
         }
 
-        echo "access_token: ".$token;
+        return $token;
 
+    }
+
+
+    /**
+     * 上传素材
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function guzzle2()
+    {
+        $access_token = $this->getAccessToken();
+        $type = 'image';
+        $url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token='.$access_token.'&type='.$type;
+        //使用guzzle发起get请求
+        $client = new Client();         //实例化 客户端
+        $response = $client->request('POST',$url,[
+            'verify'    => false,
+            'multipart' => [
+                [
+                    'name'  => 'media',
+                    'contents'  => fopen('gsl.jpg','r')
+                ],         //上传的文件路径]
+
+
+            ]
+        ]);       //发起请求并接收响应
+
+        $data = $response->getBody();
+        echo $data;
 
     }
 

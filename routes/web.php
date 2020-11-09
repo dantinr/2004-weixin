@@ -19,14 +19,6 @@ Route::get('/', function () {
 Route::get('/info',function (){
     phpinfo();
 });
-Route::get('/test1','TestController@test1');
-
-Route::get('/test2','TestController@test2');        //测试2
-Route::get('/test3','TestController@test3');        //测试2
-Route::post('/test4','TestController@test4');        //测试2
-
-Route::get('/test/wx','TestController@wx');
-Route::post('/test/wx','TestController@wx2');
 
 
 //Route::post('/wx','WxController@wxEvent');        //接收事件推送
@@ -36,4 +28,11 @@ Route::prefix('/wx')->group(function(){
     Route::get('/','WxController@index');       //接入
     Route::post('/','WxController@wxEvent');
     Route::get('/token','WxController@getAccessToken');        //获取access_token
+});
+
+// TEST 路由分组
+Route::prefix('/test')->group(function (){
+    Route::get('/guzzle1',"TestController@guzzle1");        //  /test/guzzle1
+    Route::get('/guzzle2',"WxController@guzzle2");        //  /test/guzzle1
+    Route::get('/guzzle3',"TestController@guzzle3");        //  /test/guzzle1
 });
