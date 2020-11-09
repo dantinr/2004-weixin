@@ -46,7 +46,7 @@ class WxController extends Controller
         if( $tmpStr == $signature ){            //验证通过
 
             // 1 接收数据
-            $xml_str = file_get_contents("php://input");
+            $xml_str = file_get_contents("php://input") . "\n\n";
 
             // 记录日志
             file_put_contents('wx_event.log',$xml_str,FILE_APPEND);
