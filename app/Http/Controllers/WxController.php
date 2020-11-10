@@ -34,7 +34,7 @@ class WxController extends Controller
      */
     public function wxEvent()
     {
-        $signature = $_GET["signature"];
+         $signature = $_GET["signature"];
         $timestamp = $_GET["timestamp"];
         $nonce = $_GET["nonce"];
 
@@ -50,7 +50,21 @@ class WxController extends Controller
             $xml_str = file_get_contents("php://input") . "\n\n";
 
             // 记录日志
-            file_put_contents('wx_event.log',$xml_str,FILE_APPEND);
+            file_put_contents('wx_event.log',$xml_str,、、);
+
+            // 将接收来的数据转化为对象
+            $obj = simplexml_load_string($xml_str);//将文件转换成 对象
+
+            if($obj->MsgType=="event") {
+                if($obj->Event=="subscribe"){
+                $content = "欢迎关注";
+                echo $this->xiaoxi($obj, $content);
+            }
+
+            }
+            // TODO 处理业务逻辑
+
+
             echo "";
             die;
 
@@ -79,9 +93,7 @@ class WxController extends Controller
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_APPSEC');
             //使用guzzle发起get请求
             $client = new Client();         //实例化 客户端
-
             $response = $client->request('GET',$url,['verify'=>false]);       //发起请求并接收响应
-
             $json_str = $response->getBody();       //服务器的响应数据
             $data = json_decode($json_str,true);
             $token = $data['access_token'];
@@ -113,16 +125,29 @@ class WxController extends Controller
             'multipart' => [
                 [
                     'name'  => 'media',
-                    'contents'  => fopen('gsl.jpg','r')
-                ],         //上传的文件路径]
-
-
+                    'contents'  => fopen('gsl.jpg','r') //上传的文件路径]
+                ],
             ]
-        ]);       //发起请求并接收响应
+        ]);
 
         $data = $response->getBody();
-        echo $data;
 
     }
 
+
+    public function  xiaoxi($obj,$content){
+        $ToUserName=$obj->FromUserName;
+        $FromUserName=$obj->$ToUserName;
+
+
+        $xml="<xml>
+              <ToUserName><![CDATA[".$ToUserName."]]></ToUserName>
+              <FromUserName><![CDATA[".$FromUserName."]]></FromUserName>
+              <CreateTime>time()</CreateTime>
+              <MsgType><![CDATA[text]]></MsgType>
+              <Content><![CDATA[".$content."]]></Content>
+              <MsgId>%s</MsgId>
+       </xml>";
+echo $xml;
+    }
 }

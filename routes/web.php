@@ -15,6 +15,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/rand',function (){
+    echo mt_rand(1,42);
+});
+
 
 Route::get('/info',function (){
     phpinfo();
