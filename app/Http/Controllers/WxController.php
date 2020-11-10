@@ -30,9 +30,9 @@ class WxController extends Controller
     }
 
     /**
-     * 处理推送事件
+     * 验证请求是否来自微信
      */
-    public function wxEvent()
+    private function check()
     {
         $signature = $_GET["signature"];
         $timestamp = $_GET["timestamp"];
@@ -44,30 +44,68 @@ class WxController extends Controller
         $tmpStr = implode( $tmpArr );
         $tmpStr = sha1( $tmpStr );
 
-        if( $tmpStr == $signature ){            //验证通过
-
-            // 1 接收数据
-            $xml_str = file_get_contents("php://input") . "\n\n";
-
-            // 记录日志
-            file_put_contents('wx_event.log',$xml_str,FILE_APPEND);
-
-            // 将接收来的数据转化为对象
-            $obj = simplexml_load_string($xml_str);//将文件转换成 对象
-
-            if($obj->MsgType=="event") {
-                if($obj->Event=="subscribe"){           //处理扫码关注
-
-                echo $this->xiaoxi($obj);
-            }
-
-            }
-            // TODO 处理业务逻辑
-
-
+        if( $tmpStr == $signature ){
+            return true;
         }else{
-            echo "";
+            return false;
         }
+    }
+
+    /**
+     * 处理推送事件
+     */
+    public function wxEvent()
+    {
+
+        //验签
+//        if($this->check()==false)
+//        {
+//            //TODO 验签不通过
+//            exit;
+//        }
+
+        // 1 接收数据
+        $xml_str = file_get_contents("php://input");
+
+
+        // 记录日志
+        $log_str = date('Y-m-d H:i:s') . ' >>>>>  ' . $xml_str ." \n\n";
+        file_put_contents('wx_event.log',$log_str,FILE_APPEND);
+
+        // 将接收来的数据转化为对象
+        $obj = simplexml_load_string($xml_str);//将文件转换成 对象
+
+        $msg_type = $obj->MsgType;      //推送事件的消息类型
+        switch($msg_type)
+        {
+            case 'event' :
+
+                if($obj->Event=='subscribe')        // subscribe 扫码关注
+                {
+
+                }elseif($obj->Event=='unsubscribe')     // // unsubscribe 取消关注
+                {
+
+                }
+
+                break;
+            case 'text' :           //处理文本信息
+                echo '2222';
+                break;
+            case 'image' :          // 处理图片信息
+                echo '3333';
+                break;
+            case 'voice' :          // 语音
+                echo '4444';
+                break;
+            case 'video' :          // 视频
+                echo '5555';
+                break;
+
+            default:
+                echo 'default';
+        }
+
     }
 
 
@@ -105,31 +143,6 @@ class WxController extends Controller
 
     }
 
-
-    /**
-     * 上传素材
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function guzzle2()
-    {
-        $access_token = $this->getAccessToken();
-        $type = 'image';
-        $url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token='.$access_token.'&type='.$type;
-        //使用guzzle发起get请求
-        $client = new Client();         //实例化 客户端
-        $response = $client->request('POST',$url,[
-            'verify'    => false,
-            'multipart' => [
-                [
-                    'name'  => 'media',
-                    'contents'  => fopen('gsl.jpg','r') //上传的文件路径]
-                ],
-            ]
-        ]);
-
-        $data = $response->getBody();
-
-    }
 
 
     /**

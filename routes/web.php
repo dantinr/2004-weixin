@@ -38,6 +38,7 @@ Route::prefix('/wx')->group(function(){
 
 // TEST 路由分组
 Route::prefix('/test')->group(function (){
+    Route::get('/json',"TestController@json");        //  /test/guzzle1
     Route::get('/guzzle1',"TestController@guzzle1");        //  /test/guzzle1
     Route::get('/guzzle2',"WxController@guzzle2");        //  /test/guzzle1
     Route::get('/guzzle3',"TestController@guzzle3");        //  /test/guzzle1
