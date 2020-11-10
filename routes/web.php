@@ -32,6 +32,8 @@ Route::prefix('/wx')->group(function(){
     Route::get('/','WxController@index');       //接入
     Route::post('/','WxController@wxEvent');
     Route::get('/token','WxController@getAccessToken');        //获取access_token
+    Route::get('/create_menu','WxController@createMenu');        //获取access_token
+
 });
 
 // TEST 路由分组

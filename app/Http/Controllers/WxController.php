@@ -34,7 +34,7 @@ class WxController extends Controller
      */
     public function wxEvent()
     {
-         $signature = $_GET["signature"];
+        $signature = $_GET["signature"];
         $timestamp = $_GET["timestamp"];
         $nonce = $_GET["nonce"];
 
@@ -56,17 +56,14 @@ class WxController extends Controller
             $obj = simplexml_load_string($xml_str);//将文件转换成 对象
 
             if($obj->MsgType=="event") {
-                if($obj->Event=="subscribe"){
-                $content = "欢迎关注";
-                echo $this->xiaoxi($obj, $content);
+                if($obj->Event=="subscribe"){           //处理扫码关注
+
+                echo $this->xiaoxi($obj);
             }
 
             }
             // TODO 处理业务逻辑
 
-
-            echo "";
-            die;
 
         }else{
             echo "";
@@ -135,10 +132,17 @@ class WxController extends Controller
     }
 
 
-    public function  xiaoxi($obj,$content){
-        $ToUserName=$obj->FromUserName;
-        $FromUserName=$obj->$ToUserName;
+    /**
+     * 回复扫码关注
+     * @param $obj
+     * @param $content
+     * @return string
+     */
+    public function  xiaoxi($obj){
 
+        $content = "欢迎关注11111";
+        $ToUserName=$obj->FromUserName;
+        $FromUserName=$obj->ToUserName;
 
         $xml="<xml>
               <ToUserName><![CDATA[".$ToUserName."]]></ToUserName>
@@ -148,6 +152,54 @@ class WxController extends Controller
               <Content><![CDATA[".$content."]]></Content>
               <MsgId>%s</MsgId>
        </xml>";
-echo $xml;
+
+        return $xml;
+    }
+
+    /**
+     * 创建自定义菜单
+     */
+    public function createMenu()
+    {
+        $access_token = $this->getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/menu/create?access_token='.$access_token;
+
+        $menu = [
+            'button'    => [
+                [
+                    'type'  => 'click',
+                    'name'  => 'WX2004',
+                    'key'   => 'k_wx_2004'
+                ],
+                [
+                    'type'  => 'view',
+                    'name'  => 'BAIDU',
+                    'url'   => 'https://www.baidu.com'
+                ],
+
+            ]
+        ];
+
+        //使用guzzle发起 POST 请求
+        $client = new Client();         //实例化 客户端
+        $response = $client->request('POST',$url,[
+            'verify'    => false,
+            'body'  => json_encode($menu)
+        ]);
+
+        $json_data = $response->getBody();
+
+        //判断接口返回
+        $info = json_decode($json_data,true);
+
+        if($info['errcode'] > 0)        //判断错误码
+        {
+            // TODO 处理错误
+        }else{
+            // TODO 创建菜单成功逻辑
+        }
+
+
+
     }
 }
