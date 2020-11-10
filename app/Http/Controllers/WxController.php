@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use GuzzleHttp\Client;
+use App\Model\WxMediaModel;
 
 class WxController extends Controller
 {
-    //
+
+    protected $xml_obj;
 
     public function index()
     {
@@ -74,6 +76,7 @@ class WxController extends Controller
 
         // 将接收来的数据转化为对象
         $obj = simplexml_load_string($xml_str);//将文件转换成 对象
+        $this->xml_obj = $obj;
 
         $msg_type = $obj->MsgType;      //推送事件的消息类型
         switch($msg_type)
@@ -82,19 +85,23 @@ class WxController extends Controller
 
                 if($obj->Event=='subscribe')        // subscribe 扫码关注
                 {
-
+                    echo $this->subscribe();
+                    exit;
                 }elseif($obj->Event=='unsubscribe')     // // unsubscribe 取消关注
                 {
-
+                    echo "";
+                    exit;
                 }
+                break;
 
-                break;
             case 'text' :           //处理文本信息
-                echo '2222';
+                $this->textHandler();
                 break;
+
             case 'image' :          // 处理图片信息
                 echo '3333';
                 break;
+
             case 'voice' :          // 语音
                 echo '4444';
                 break;
@@ -106,7 +113,28 @@ class WxController extends Controller
                 echo 'default';
         }
 
+        echo "";
+
     }
+
+    protected function textHandler()
+    {
+        echo '<pre>';print_r($this->xml_obj);echo '</pre>';
+        $data = [
+            'open_id'       => $this->xml_obj->FromUserName,
+            'msg_type'      => $this->xml_obj->MsgType,
+            'msg_id'        => $this->xml_obj->MsgId,
+            'create_time'   => $this->xml_obj->CreateTime,
+        ];
+
+        //入库
+        WxMediaModel::insertGetId($data);
+
+    }
+
+    protected function imageHandler(){}
+    protected function voiceHandler(){}
+    protected function videoHandler(){}
 
 
     /**
@@ -151,11 +179,11 @@ class WxController extends Controller
      * @param $content
      * @return string
      */
-    public function  xiaoxi($obj){
+    public function  subscribe(){
 
-        $content = "欢迎关注11111";
-        $ToUserName=$obj->FromUserName;
-        $FromUserName=$obj->ToUserName;
+        $content = "欢迎关注 现在时间是：" . date("Y-m-d H:i:s");
+        $ToUserName=$this->obj->FromUserName;
+        $FromUserName=$this->obj->ToUserName;
 
         $xml="<xml>
               <ToUserName><![CDATA[".$ToUserName."]]></ToUserName>
@@ -163,7 +191,6 @@ class WxController extends Controller
               <CreateTime>time()</CreateTime>
               <MsgType><![CDATA[text]]></MsgType>
               <Content><![CDATA[".$content."]]></Content>
-              <MsgId>%s</MsgId>
        </xml>";
 
         return $xml;
