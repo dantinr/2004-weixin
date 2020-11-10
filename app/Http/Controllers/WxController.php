@@ -63,6 +63,7 @@ class WxController extends Controller
 //        if($this->check()==false)
 //        {
 //            //TODO 验签不通过
+//            echo "";
 //            exit;
 //        }
 
@@ -91,7 +92,15 @@ class WxController extends Controller
                 {
                     echo "";
                     exit;
+                }elseif ($obj->Event=='CLICK')          // 菜单点击事件
+                {
+                    // TODO
+                }elseif($obj->Event=='VIEW')            // 菜单 view点击 事件
+                {
+                    // TODO
                 }
+
+
                 break;
 
             case 'text' :           //处理文本信息
@@ -99,14 +108,14 @@ class WxController extends Controller
                 break;
 
             case 'image' :          // 处理图片信息
-                echo '3333';
+                $this->imageHandler();
                 break;
 
             case 'voice' :          // 语音
-                echo '4444';
+                $this->voiceHandler();
                 break;
             case 'video' :          // 视频
-                echo '5555';
+                $this->videoHandler();
                 break;
 
             default:
@@ -132,7 +141,14 @@ class WxController extends Controller
 
     }
 
-    protected function imageHandler(){}
+    protected function imageHandler(){
+
+        //入库
+
+        //下载素材
+
+
+    }
     protected function voiceHandler(){}
     protected function videoHandler(){}
 
@@ -182,8 +198,8 @@ class WxController extends Controller
     public function  subscribe(){
 
         $content = "欢迎关注 现在时间是：" . date("Y-m-d H:i:s");
-        $ToUserName=$this->obj->FromUserName;
-        $FromUserName=$this->obj->ToUserName;
+        $ToUserName=$this->xml_obj->FromUserName;
+        $FromUserName=$this->xml_obj->ToUserName;
 
         $xml="<xml>
               <ToUserName><![CDATA[".$ToUserName."]]></ToUserName>
