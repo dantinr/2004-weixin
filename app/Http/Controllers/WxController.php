@@ -267,9 +267,9 @@ class WxController extends Controller
         $menu = [
             'button'    => [
                 [
-                    'type'  => 'click',
-                    'name'  => 'WX2004',
-                    'key'   => 'k_wx_2004'
+                    'type'  => 'view',
+                    'name'  => '商城',
+                    'url'   => 'http://2004shop.comcto.com'
                 ],
                 [
                     'name'          => '二级菜单',
@@ -313,7 +313,7 @@ class WxController extends Controller
             echo '<pre>';print_r($info);echo '</pre>';
         }else{
             // TODO 创建菜单成功逻辑
-            echo "创建菜单成功";
+            echo date("Y-m-d H:i:s").  "创建菜单成功";
         }
 
 
