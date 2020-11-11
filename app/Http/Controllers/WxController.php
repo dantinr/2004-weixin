@@ -150,10 +150,31 @@ class WxController extends Controller
      */
     protected function imageHandler(){
 
-        //入库
 
         //下载素材
+        $token = $this->getAccessToken();
+        $media_id = $this->xml_obj->MediaId;
+        $url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token='.$token.'&media_id='.$media_id;
+        $img = file_get_contents($url);
+        $media_path = 'upload/cat.jpg';
+        $res = file_put_contents($media_path,$img);
+        if($res)
+        {
+            // TODO 保存成功
+        }else{
+            // TODO 保存失败
+        }
 
+        //入库
+        $info = [
+            'media_id'  => $media_id,
+            'open_id'   => $this->xml_obj->FromUserName,
+            'msg_type'  => $this->xml_obj->MsgType,
+            'msg_id'  => $this->xml_obj->MsgId,
+            'create_time'  => $this->xml_obj->CreateTime,
+            'media_path'    => $media_path
+        ];
+        WxMediaModel::insertGetId($info);
 
     }
 
@@ -209,8 +230,7 @@ class WxController extends Controller
         $token = Redis::get($key);
         if($token)
         {
-
-
+            return $token;
         }else{
 
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".env('WX_APPID')."&secret=".env('WX_APPSEC');
@@ -224,10 +244,10 @@ class WxController extends Controller
             //保存到Redis中 时间为 3600
             Redis::set($key,$token);
             Redis::expire($key,3600);
-
+            return $token;
         }
 
-        return $token;
+
 
     }
 
@@ -319,4 +339,22 @@ class WxController extends Controller
 
 
     }
+
+
+    /**
+     * 下载媒体
+     */
+    public function dlMedia()
+    {
+        $token = $this->getAccessToken();
+        $media_id = '2EOz5TyVOVA728B6cETWByk8_w33mS17Ye1e1C6AuAv2SMS7l4R4HoQFl9mmgprw';
+        $url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token='.$token.'&media_id='.$media_id;
+        $img = file_get_contents($url);
+        $res = file_put_contents('cat.jpg',$img);
+        var_dump($res);
+
+    }
+
+
+
 }

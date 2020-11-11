@@ -42,4 +42,6 @@ Route::prefix('/test')->group(function (){
     Route::get('/guzzle1',"TestController@guzzle1");        //  /test/guzzle1
     Route::get('/guzzle2',"WxController@guzzle2");        //  /test/guzzle1
     Route::get('/guzzle3',"TestController@guzzle3");        //  /test/guzzle1
+    Route::get('/media',"WxController@dlMedia");        //  /test/guzzle1
+
 });
