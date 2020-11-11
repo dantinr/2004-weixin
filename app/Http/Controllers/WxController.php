@@ -94,6 +94,7 @@ class WxController extends Controller
                     exit;
                 }elseif ($obj->Event=='CLICK')          // 菜单点击事件
                 {
+                    $this->clickHandler();
                     // TODO
                 }elseif($obj->Event=='VIEW')            // 菜单 view点击 事件
                 {
@@ -126,6 +127,9 @@ class WxController extends Controller
 
     }
 
+    /**
+     * 处理文本消息
+     */
     protected function textHandler()
     {
         echo '<pre>';print_r($this->xml_obj);echo '</pre>';
@@ -141,6 +145,9 @@ class WxController extends Controller
 
     }
 
+    /**
+     * 处理图片消息
+     */
     protected function imageHandler(){
 
         //入库
@@ -149,8 +156,45 @@ class WxController extends Controller
 
 
     }
+
+    /**
+     * 处理语音消息
+     */
     protected function voiceHandler(){}
+
+
+    /**
+     * 处理视频消息
+     */
     protected function videoHandler(){}
+
+
+    /**
+     * 处理菜单点击事件
+     * click类型的菜单 创建时会有key，根据key做相应的逻辑处理
+     */
+    protected function clickHandler()
+    {
+        $event_key = $this->xml_obj->EventKey;      //菜单 click key
+        echo $event_key;
+
+        switch ($event_key){
+            case 'checkin' :
+                // TODO 签到逻辑
+                break;
+
+            case 'weather':
+                // TODO 获取天气
+                break;
+
+            default:
+                // TODO 默认
+                break;
+        }
+
+        echo "";
+
+    }
 
 
     /**
@@ -165,7 +209,7 @@ class WxController extends Controller
         $token = Redis::get($key);
         if($token)
         {
-            echo "有缓存";echo '</br>';
+
 
         }else{
 
@@ -228,9 +272,24 @@ class WxController extends Controller
                     'key'   => 'k_wx_2004'
                 ],
                 [
-                    'type'  => 'view',
-                    'name'  => 'BAIDU',
-                    'url'   => 'https://www.baidu.com'
+                    'name'          => '二级菜单',
+                    'sub_button'    => [
+                        [
+                            'type'  => 'click',
+                            'name'  => '签到',
+                            'key'   => 'checkin'
+                        ],
+                        [
+                            'type'  => 'pic_photo_or_album',
+                            'name'  => '传图',
+                            'key'   => 'uploadimg'
+                        ],
+                        [
+                            'type'  => 'click',
+                            'name'  => '天气',
+                            'key'   => 'weather'
+                        ]
+                    ]
                 ],
 
             ]
@@ -240,7 +299,7 @@ class WxController extends Controller
         $client = new Client();         //实例化 客户端
         $response = $client->request('POST',$url,[
             'verify'    => false,
-            'body'  => json_encode($menu)
+            'body'  => json_encode($menu,JSON_UNESCAPED_UNICODE)
         ]);
 
         $json_data = $response->getBody();
@@ -251,8 +310,10 @@ class WxController extends Controller
         if($info['errcode'] > 0)        //判断错误码
         {
             // TODO 处理错误
+            echo '<pre>';print_r($info);echo '</pre>';
         }else{
             // TODO 创建菜单成功逻辑
+            echo "创建菜单成功";
         }
 
 
