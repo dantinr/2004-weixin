@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Model\WxUserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use GuzzleHttp\Client;
@@ -261,9 +262,31 @@ class WxController extends Controller
      */
     public function  subscribe(){
 
-        $content = "欢迎关注 现在时间是：" . date("Y-m-d H:i:s");
-        $ToUserName=$this->xml_obj->FromUserName;
+        $ToUserName=$this->xml_obj->FromUserName;       // openid
         $FromUserName=$this->xml_obj->ToUserName;
+        //检查用户是否存在
+        $u = WxUserModel::where(['openid'=>$ToUserName])->first();
+        if($u)
+        {
+            // TODO 用户存在
+            $content = "欢迎回来 现在时间是：" . date("Y-m-d H:i:s");
+        }else{
+            //获取用户信息，并入库
+            $user_info = $this->getWxUserInfo();
+
+            //入库
+            unset($user_info['subscribe']);
+            unset($user_info['remark']);
+            unset($user_info['groupid']);
+            unset($user_info['substagid_listcribe']);
+            unset($user_info['qr_scene']);
+            unset($user_info['qr_scene_str']);
+            unset($user_info['tagid_list']);
+
+            WxUserModel::insertGetId($user_info);
+            $content = "欢迎关注 现在时间是：" . date("Y-m-d H:i:s");
+
+        }
 
         $xml="<xml>
               <ToUserName><![CDATA[".$ToUserName."]]></ToUserName>
@@ -349,11 +372,128 @@ class WxController extends Controller
         $token = $this->getAccessToken();
         $media_id = '2EOz5TyVOVA728B6cETWByk8_w33mS17Ye1e1C6AuAv2SMS7l4R4HoQFl9mmgprw';
         $url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token='.$token.'&media_id='.$media_id;
+        echo $url;die;
         $img = file_get_contents($url);
         $res = file_put_contents('cat.jpg',$img);
         var_dump($res);
 
     }
+
+
+    /**
+     * 上传素材接口
+     * 参考  https://developers.weixin.qq.com/doc/offiaccount/Asset_Management/New_temporary_materials.html
+     */
+    public function uploadMedia()
+    {
+        $access_token = $this->getAccessToken();
+        $type = 'video';        //素材类型 image voice video thumb
+        $url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token='.$access_token.'&type='.$type;
+
+        $media = 'tmp/heshang.mp4';     //要上传的素材
+        //使用guzzle发起get请求
+        $client = new Client();         //实例化 客户端
+        $response = $client->request('POST',$url,[
+            'verify'    => false,
+            'multipart' => [
+                [
+                    'name'  => 'media',
+                    'contents'  => fopen($media,'r')
+                ],         //上传的文件路径]
+            ]
+        ]);       //发起请求并接收响应
+
+        $data = $response->getBody();
+        echo $data;
+    }
+
+    /**
+     * 群发消息
+     */
+    public function sendAll()
+    {
+        //根据openid 群发   https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Batch_Sends_and_Originality_Checks.html#3
+        $access_token = $this->getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token='.$access_token;
+
+        //使用guzzle发起POST请求
+
+        $data = [
+            'filter'    => [
+                'is_to_all' => false,
+                'tag_id'    => 2
+            ],
+            'touser'    => [
+                'oLreB1gfi87dPCO2gRiUecC5ZAbc',
+                'oLreB1ruWsNCS-iMr_scTyVSUyY0',
+                'oLreB1gnCH7es_CbLhRvM6yQO-kQ',
+                'oLreB1mi55VwI2wai2y1uicTG5sk',
+                'oLreB1hSqDSoz7VkTDin6J75ez4M',
+                'oLreB1nsTnJSYPgmEUe1YW1xdAOw',
+                'oLreB1i2Ig7OlI9YMI_nUBdGDmU8',
+                'oLreB1qa7IVU3qpe0Tg1LShlzkww',
+                'oLreB1kVep716f8n1i2Ace6r6UnA',
+                'oLreB1kCnRGCqWu0Mur4A08usNRM',
+                'oLreB1upyFz8UPNt5OTNLfP_9ciM',
+                'oLreB1hfXdA_H-A-kJzXotMvlL1s',
+                'oLreB1obDfuVfyBO8cBIH8FibAiA',
+                'oLreB1m47p6J4mfY5Z6CQCMwFX4Q',
+                'oLreB1hjx82-74x7qKxmkyeWbC7I',
+                'oLreB1rcEhV6sMK9-X5Vgw_Sghqo',
+                'oLreB1jG5XZ-F5QokhugIxdpe2lk',
+                'oLreB1jAnJFzV_8AGWUZlfuaoQto',
+                'oLreB1rTYjCsM8lp40yGky1fDcAQ',
+                'oLreB1tqqKpg4n53ujarU47tQnSM',
+                'oLreB1nGcCmNvEXScOpVNgfBifLA',
+                'oLreB1inC1l0NjUy3Vz6rD5DoLDM',
+                'oLreB1uh30YcGZGLDMPbm8cpu81E',
+                'oLreB1qNMROnUTIbIAFSRoekMdfw',
+                'oLreB1sehZ4x0N7T93-elf6f5hYg',
+                'oLreB1tvM636Yof_F4WTh0nP6fOY',
+                'oLreB1oWQYSQJUKL5i6kamigrj8g',
+                'oLreB1oPHycqKR383DQtdhnHjP2U',
+                'oLreB1ikgAe1kq2ES0M6SWQdGVqY',
+            ],
+            'images'    => [
+                'media_ids' => [
+                    '2EOz5TyVOVA728B6cETWByk8_w33mS17Ye1e1C6AuAv2SMS7l4R4HoQFl9mmgprw'
+                ],
+            ],
+            'msgtype'   => 'image'
+        ];
+
+        $client = new Client();         //实例化 客户端
+        $response = $client->request('POST',$url,[
+            'verify'    => false,
+            'body'      => json_encode($data,JSON_UNESCAPED_UNICODE)
+        ]);       //发起请求并接收响应
+
+        $data = $response->getBody();
+        echo $data;
+
+    }
+
+
+    /**
+     * 获取用户基本信息
+     */
+    public function getWxUserInfo()
+    {
+
+        $token = $this->getAccessToken();
+        $openid = $this->xml_obj->FromUserName;
+        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$token.'&openid='.$openid.'&lang=zh_CN';
+
+        //请求接口
+        $client = new Client();
+        $response = $client->request('GET',$url,[
+            'verify'    => false
+        ]);
+        return  json_decode($response->getBody(),true);
+    }
+
+
+
 
 
 
